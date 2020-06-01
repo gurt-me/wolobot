@@ -1,6 +1,6 @@
 package me.gurt.wolowolo.plugin
+
 import me.gurt.wolowolo.Handler
-import me.gurt.wolowolo.plugin.Hook._
 
 class Useless extends Plugin {
 

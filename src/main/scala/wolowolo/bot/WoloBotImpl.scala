@@ -2,13 +2,13 @@ package me.gurt.wolowolo.bot
 
 import com.typesafe.config.Config
 import me.gurt.wolowolo.Handler
-import me.gurt.wolowolo.config.NeoTaigaConfig
+import me.gurt.wolowolo.config.WoloBotConfig
 import me.gurt.wolowolo.dsl.Target._
 import me.gurt.wolowolo.dsl._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class WoloBotImpl(val connectionConfig: Config) extends WoloBot with NeoTaigaConfig {
+class WoloBotImpl(val connectionConfig: Config) extends WoloBot with WoloBotConfig {
   var handler: Handler = _
 
   setVerbose(verbose)
@@ -95,7 +95,7 @@ class WoloBotImpl(val connectionConfig: Config) extends WoloBot with NeoTaigaCon
       .foreach(send)
 
   override def onServerResponse(code: Int, response: String): Unit =
-    handler(Server, getNick, Numeric(code, response))
+    handler(Server, User(getNick), Numeric(code, response))
 
   def send(s: Sendable): Unit =
     s match {

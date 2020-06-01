@@ -1,9 +1,6 @@
 package me.gurt
 
-import me.gurt.wolowolo.dsl.Target.Channel
 import me.gurt.wolowolo.dsl._
-
-import scala.concurrent.Future
 
 package object wolowolo {
   private[wolowolo] type Handler = ((Source, Target, Received)) => Option[Sendable]

@@ -3,7 +3,6 @@ package me.gurt.wolowolo.plugin
 import com.typesafe.config.Config
 import me.gurt.wolowolo._
 import me.gurt.wolowolo.config.BaseConfig
-import me.gurt.wolowolo.dsl.Target.Channel
 import me.gurt.wolowolo.dsl._
 import net.ceedubs.ficus.Ficus._
 

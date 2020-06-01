@@ -1,3 +1,4 @@
+organization := "me.gurt"
 name := "wolobot"
 
 version := "0.1"
@@ -19,3 +20,11 @@ libraryDependencies ++= Seq(
   "com.iheart"  %% "ficus"     % "1.4.7",
   "org.clapper" %% "classutil" % "1.5.1",
 )
+
+lazy val nyaaSi = RootProject(uri("https://github.com/gurt-me/NyaaSi-API.git"))
+dependsOn(nyaaSi)
+
+assemblyMergeStrategy in assembly := {
+  case PathList("module-info.class") => MergeStrategy.concat
+  case path                          => MergeStrategy.defaultMergeStrategy(path)
+}

@@ -1,18 +1,18 @@
 package me.gurt.wolowolo.config
 
 import com.typesafe.config.Config
-import me.gurt.wolowolo.config.NeoTaigaConfig.ConnectionSettings
+import me.gurt.wolowolo.config.WoloBotConfig.ConnectionSettings
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 
-trait NeoTaigaConfig extends BaseConfig {
+trait WoloBotConfig extends BaseConfig {
   def connectionConfig: Config
   val connectionSettings: ConnectionSettings = connectionConfig.as[ConnectionSettings]
 
   val verbose = config.getAs[Boolean]("verbose") getOrElse false
 }
 
-object NeoTaigaConfig {
+object WoloBotConfig {
 
   case class ConnectionSettings(
       server: String,

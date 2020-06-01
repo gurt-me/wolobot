@@ -1,8 +1,9 @@
 package me.gurt.wolowolo
 
-import me.gurt.wolowolo.dsl.Target.Channel
+import org.jibble.pircbot
 
 import scala.concurrent.Future
+import scala.language.implicitConversions
 
 package object dsl {
 
@@ -24,5 +25,26 @@ package object dsl {
   sealed trait Source                                           extends Any
   case object Server                                            extends Source
   case class UserInfo(nick: String, user: String, host: String) extends Source
+
+  sealed trait Target extends Any {
+    def target: String
+    override def toString = target
+  }
+  case class Channel(target: String) extends AnyVal with Target
+  case class User(target: String)    extends AnyVal with Target
+  object Target {
+    private val CHANNEL_PREFIXES = "#&+!"
+    def apply(target: String): Target =
+      if (CHANNEL_PREFIXES.contains(target.charAt(0))) Channel(target) else User(target)
+  }
+  implicit def pircBotUser2Target(user: pircbot.User) = Target(user.getNick)
+  implicit def string2Target(s: String) = Target(s)
+
+  implicit class TargetOps(val target: Target) extends AnyVal {
+    // Sugar
+    def msg    = PrivMsg(target, _)
+    def me     = Action(target, _)
+    def notice = Notice(target, _)
+  }
 
 }
