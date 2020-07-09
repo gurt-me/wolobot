@@ -1,4 +1,4 @@
-package me.gurt.wolowolo.plugin
+package me.gurt.wolowolo.plugins
 
 import com.typesafe.config.Config
 import me.gurt.wolowolo._

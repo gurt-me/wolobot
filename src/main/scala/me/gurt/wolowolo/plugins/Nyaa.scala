@@ -1,10 +1,10 @@
-package me.gurt.wolowolo.plugin
+package me.gurt.wolowolo.plugins
 
 import de.kaysubs.tracker.nyaasi.NyaaSiApi
 import de.kaysubs.tracker.nyaasi.model.SearchRequest
 import de.kaysubs.tracker.nyaasi.model.SearchRequest._
-import me.gurt.wolowolo.plugin.Nyaa._
 import me.gurt.wolowolo._
+import me.gurt.wolowolo.plugins.Nyaa._
 import org.jibble.pircbot.Colors.BOLD
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,9 +15,9 @@ class Nyaa extends Plugin {
   def handle(networkName: String): Handler =
     handleFirst(
       Seq(
-        Hook.command("nyaa", Simply { args => Some(nyaa(args)) }),
-        Hook.command("sukebei", Simply { args => Some(sukebei(args)) }),
-        Hook.regex(movieCode, Simply { movieCode.findFirstIn(_).map(sukebei(_)) }),
+        Hook.command("nyaa", Resp { args => Some(nyaa(args)) }),
+        Hook.command("sukebei", Resp { args => Some(sukebei(args)) }),
+        Hook.regex(movieCode, Resp { _.toSeq.headOption.map(sukebei(_)) }),
       ),
     )
 
