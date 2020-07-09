@@ -48,7 +48,10 @@ package object plugins {
     def regex(regex: Regex, h: Resp[MatchIterator]): Handler = {
       case (s: Source, t: Target, PrivMsg(_, message)) =>
         val matches = regex.unanchored findAllIn message
-        h.resp(s, t, matches)
+        if (matches.isEmpty)
+          None
+        else
+          h.resp(s, t, matches)
 
       case _ => None
     }

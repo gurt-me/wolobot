@@ -1,6 +1,5 @@
 package me.gurt.wolowolo.bot
 
-import cats.Monad
 import cats.effect.{ContextShift, IO}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -9,7 +8,6 @@ import me.gurt.wolowolo.config.WoloBotConfig
 import me.gurt.wolowolo.dsl._
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class WoloBotImpl(val connectionConfig: Config)
     extends WoloBot
@@ -103,13 +101,16 @@ class WoloBotImpl(val connectionConfig: Config)
   override def onServerResponse(code: Int, response: String): Unit =
     handler(Server, User(getNick), Numeric(code, response))
 
+  implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+
   def send(s: Sendable): Unit =
-    IO.shift(ExecutionContext.global) *> evalSendable(s) unsafeRunAsync {
-      case Left(t: Throwable) => logger.error("failed when sending", t)
+    IO.shift *> evalSendable(s) unsafeRunAsync {
+      case Left(t: Throwable) => logger.warn("failed to execute effect", t)
       case Right(_: Unit)     => ()
     }
 
   def evalSendable(s: Sendable): IO[Unit] = {
+    // Needed for IO.start to do a logical thread fork
     import cats.implicits._
     s match {
       case PrivMsg(target, m) => IO { sendMessage(target.toString, m.take(450)) }
@@ -128,7 +129,7 @@ class WoloBotImpl(val connectionConfig: Config)
           else sendRawLineViaQueue(line)
         }
       case is: IOSendable   => is.io.flatMap(evalSendable)
-      case is: IterSendable => is.it.toVector.traverse(evalSendable).map(_ => ())
+      case is: IterSendable => is.it.toVector.parTraverse(evalSendable).map(_ => ())
     }
   }
 
