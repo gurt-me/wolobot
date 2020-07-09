@@ -25,7 +25,7 @@ class Nyaa extends Plugin {
 
 object Nyaa {
 
-  val movieCode = "[A-Z]{3,4}-[0-9]{3}".r
+  val movieCode = "[A-Z]{3,5}-[0-9]{3}".r
 
   val nyaa: String => Future[String]    = search(NyaaSiApi.getNyaa, "https://nyaa.si")
   val sukebei: String => Future[String] = search(NyaaSiApi.getSukebei, "https://sukebei.nyaa.si")
