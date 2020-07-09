@@ -1,11 +1,10 @@
 package me.gurt.wolowolo
 
+import cats.effect.IO
 import me.gurt.wolowolo.config.BaseConfig
 import me.gurt.wolowolo.dsl._
 import net.ceedubs.ficus.Ficus._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 import scala.util.matching.Regex.MatchIterator
@@ -23,13 +22,13 @@ package object plugins {
     )(s: Source, t: Target, m: T): Option[Sendable] =
       sr(m) map {
         case ssr: SimpleStringResponse => t msg ssr.s
-        case sfr: SimpleFutureResponse => sfr.f map (t msg _)
+        case sfr: SimpleEffectResponse => sfr.f map (t msg _)
       }
   }
 
-  sealed trait SimpleResponse                                extends Any
-  implicit class SimpleStringResponse(val s: String)         extends AnyVal with SimpleResponse
-  implicit class SimpleFutureResponse(val f: Future[String]) extends AnyVal with SimpleResponse
+  sealed trait SimpleResponse                            extends Any
+  implicit class SimpleStringResponse(val s: String)     extends AnyVal with SimpleResponse
+  implicit class SimpleEffectResponse(val f: IO[String]) extends AnyVal with SimpleResponse
 
   object Hook extends BaseConfig {
 

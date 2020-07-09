@@ -1,16 +1,14 @@
 package me.gurt.wolowolo.plugins
 
+import cats.effect.IO
 import de.kaysubs.tracker.nyaasi.NyaaSiApi
 import de.kaysubs.tracker.nyaasi.model.SearchRequest
 import de.kaysubs.tracker.nyaasi.model.SearchRequest._
 import me.gurt.wolowolo._
-import me.gurt.wolowolo.plugins.Nyaa._
 import org.jibble.pircbot.Colors.BOLD
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 class Nyaa extends Plugin {
+  import Nyaa._
 
   def handle(networkName: String): Handler =
     handleFirst(
@@ -24,22 +22,21 @@ class Nyaa extends Plugin {
 }
 
 object Nyaa {
-
   val movieCode = "[A-Z]{3,5}-[0-9]{3}".r
 
-  val nyaa: String => Future[String]    = search(NyaaSiApi.getNyaa, "https://nyaa.si")
-  val sukebei: String => Future[String] = search(NyaaSiApi.getSukebei, "https://sukebei.nyaa.si")
+  val nyaa: String => IO[String] = search(NyaaSiApi.getNyaa, "https://nyaa.si")
+  val sukebei: String => IO[String] =
+    search(NyaaSiApi.getSukebei, "https://sukebei.nyaa.si")
 
-  private def search(api: NyaaSiApi, baseUrl: String)(term: String): Future[String] = {
+  def search(api: NyaaSiApi, baseUrl: String)(term: String): IO[String] = {
     val searchRequest = new SearchRequest()
       .setOrdering(Ordering.DESCENDING)
       .setSortedBy(Sort.SEEDERS)
       .setTerm(term)
-    Future {
+    IO {
       val topResult = api.search(searchRequest)(0)
       s"[${topResult.getCategory.getName}] $BOLD${topResult.getTitle}$BOLD " ++
         s"$baseUrl/view/${topResult.getId}"
     }
   }
-
 }

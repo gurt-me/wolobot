@@ -1,8 +1,8 @@
 package me.gurt.wolowolo
 
+import cats.effect.IO
 import org.jibble.pircbot
 
-import scala.concurrent.Future
 import scala.language.implicitConversions
 
 package object dsl {
@@ -19,7 +19,7 @@ package object dsl {
   case class Join(channel: Channel, key: Option[String] = None)    extends Received with Sendable
   case class Part(channel: Channel, reason: Option[String] = None) extends Received with Sendable
   case class Raw(line: String, skipQueue: Boolean = false)         extends Sendable
-  implicit class FutureSendable(val future: Future[Sendable])      extends AnyVal with Sendable
+  implicit class IOSendable(val io: IO[Sendable])                  extends AnyVal with Sendable
   implicit class IterSendable(val it: Iterable[Sendable])          extends AnyVal with Sendable
 
   sealed trait Source                                           extends Any
@@ -38,7 +38,7 @@ package object dsl {
       if (CHANNEL_PREFIXES.contains(target.charAt(0))) Channel(target) else User(target)
   }
   implicit def pircBotUser2Target(user: pircbot.User) = Target(user.getNick)
-  implicit def string2Target(s: String) = Target(s)
+  implicit def string2Target(s: String)               = Target(s)
 
   implicit class TargetOps(val target: Target) extends AnyVal {
     // Sugar

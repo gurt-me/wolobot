@@ -1,6 +1,7 @@
 package me.gurt
 
 import me.gurt.wolowolo.dsl._
+import me.gurt.wolowolo.plugins._
 
 package object wolowolo {
   private[wolowolo] type Handler = ((Source, Target, Received)) => Option[Sendable]
@@ -13,5 +14,12 @@ package object wolowolo {
     hs.map(_.unlift)
       .foldLeft(PartialFunction.empty[(Source, Target, Received), Sendable])(_ orElse _)
       .lift
+
+  val allPlugins = Vector(
+    classOf[Nyaa],
+    classOf[Relay],
+    classOf[Useless],
+    classOf[VideoMeta],
+  )
 
 }

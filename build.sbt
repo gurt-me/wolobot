@@ -15,11 +15,22 @@ scalacOptions ++= Seq(
   "-Xfatal-warnings",
 )
 
+val versions = new {
+  val circe = "0.12.3"
+}
+
 libraryDependencies ++= Seq(
-  "pircbot"      % "pircbot"   % "1.5.0",
-  "com.iheart"  %% "ficus"     % "1.4.7",
-  "org.clapper" %% "classutil" % "1.5.1",
-)
+  "pircbot"                     % "pircbot"         % "1.5.0",
+  "ch.qos.logback"              % "logback-classic" % "1.2.3",
+  "com.iheart"                 %% "ficus"           % "1.4.7",
+  "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.2",
+  "org.typelevel"              %% "cats-core"       % "2.1.1",
+  "org.typelevel"              %% "cats-effect"     % "2.1.3",
+) ++ Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-parser",
+).map(_ % versions.circe)
 
 lazy val nyaaSi = RootProject(uri("https://github.com/gurt-me/NyaaSi-API.git"))
 dependsOn(nyaaSi)

@@ -1,14 +1,20 @@
 package me.gurt.wolowolo.bot
 
+import cats.Monad
+import cats.effect.{ContextShift, IO}
 import com.typesafe.config.Config
+import com.typesafe.scalalogging.LazyLogging
 import me.gurt.wolowolo.Handler
 import me.gurt.wolowolo.config.WoloBotConfig
-import me.gurt.wolowolo.dsl.Target._
 import me.gurt.wolowolo.dsl._
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class WoloBotImpl(val connectionConfig: Config) extends WoloBot with WoloBotConfig {
+class WoloBotImpl(val connectionConfig: Config)
+    extends WoloBot
+    with WoloBotConfig
+    with LazyLogging {
   var handler: Handler = _
 
   setVerbose(verbose)
@@ -98,23 +104,33 @@ class WoloBotImpl(val connectionConfig: Config) extends WoloBot with WoloBotConf
     handler(Server, User(getNick), Numeric(code, response))
 
   def send(s: Sendable): Unit =
-    s match {
-      case PrivMsg(target, m) => sendMessage(target.toString, m.take(450))
-      case Notice(target, m)  => sendNotice(target.toString, m.take(450))
-      case Action(target, m)  => sendAction(target.toString, m.take(450))
-      case Ctcp(target, m)    => sendCTCPCommand(target.toString, m.take(450))
-      case Mode(target, m)    => setMode(target.toString, m.take(450))
-      case Join(channel, key) =>
-        key.fold(joinChannel(channel.toString))(joinChannel(channel.toString, _))
-      case Part(channel, rs) =>
-        rs.fold(partChannel(channel.toString))(partChannel(channel.toString, _))
-      case Raw(line, skipQueue) =>
-        if (skipQueue)
-          sendRawLine(line)
-        else sendRawLineViaQueue(line)
-      case sf: FutureSendable => sf.future.foreach(send)
-      case is: IterSendable   => is.it.foreach(send)
+    IO.shift(ExecutionContext.global) *> evalSendable(s) unsafeRunAsync {
+      case Left(t: Throwable) => logger.error("failed when sending", t)
+      case Right(_: Unit)     => ()
     }
+
+  def evalSendable(s: Sendable): IO[Unit] = {
+    import cats.implicits._
+    s match {
+      case PrivMsg(target, m) => IO { sendMessage(target.toString, m.take(450)) }
+      case Notice(target, m)  => IO { sendNotice(target.toString, m.take(450)) }
+      case Action(target, m)  => IO { sendAction(target.toString, m.take(450)) }
+      case Ctcp(target, m)    => IO { sendCTCPCommand(target.toString, m.take(450)) }
+      case Mode(target, m)    => IO { setMode(target.toString, m.take(450)) }
+      case Join(channel, key) =>
+        IO { key.fold(joinChannel(channel.toString))(joinChannel(channel.toString, _)) }
+      case Part(channel, rs) =>
+        IO { rs.fold(partChannel(channel.toString))(partChannel(channel.toString, _)) }
+      case Raw(line, skipQueue) =>
+        IO {
+          if (skipQueue)
+            sendRawLine(line)
+          else sendRawLineViaQueue(line)
+        }
+      case is: IOSendable   => is.io.flatMap(evalSendable)
+      case is: IterSendable => is.it.toVector.traverse(evalSendable).map(_ => ())
+    }
+  }
 
   def resolveReply(senderNick: String, target: Target): Target =
     target match {
