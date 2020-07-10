@@ -1,19 +1,16 @@
 package me.gurt
 
-import cats.Monoid
+import cats._
 import cats.data._
+import cats.implicits._
 import me.gurt.wolowolo.dsl._
-import me.gurt.wolowolo.plugins._
+
+import scala.language.implicitConversions
 
 package object wolowolo {
   private[wolowolo] type Handler = ((Source, Target, Received)) => Option[Sendable]
 
-  def handleFirst(hs: Iterable[Handler]): Handler =
-    hs.map(_.unlift)
-      .foldLeft(PartialFunction.empty[(Source, Target, Received), Sendable])(_ orElse _)
-      .lift
-
-  // catMaybe style
+  // catMaybe style only used explicitly
   val handleAll: Monoid[Handler] = new Monoid[Handler] {
     def empty: Handler = _ => None
 
@@ -21,18 +18,17 @@ package object wolowolo {
       x => NonEmptyChain.fromSeq(Vector(h1, h2).flatMap(h => h(x))).map(identity[Sendable](_))
   }
 
-  val handleFirst: Monoid[Handler] = new Monoid[Handler] {
+  // handle first
+  implicit val sendableSemigroupEvidence: Semigroup[Sendable] = (s1, _) => s1
+
+  implicit private[wolowolo] val handleFirst: Monoid[Handler] = new Monoid[Handler] {
     def empty: Handler = _ => None
 
     def combine(h1: Handler, h2: Handler): Handler =
-      x => h1(x) orElse h2(x)
+      x => Chain(h1, h2).map(h => h(x)).combineAll
   }
 
-  val allPlugins = Vector(
-    classOf[Nyaa],
-    classOf[Relay],
-    classOf[Useless],
-    classOf[VideoMeta],
-  )
+  implicit def chainHandler2Handler[T[_]: Foldable](ch: T[Handler]): Handler =
+    ch.combineAll
 
 }

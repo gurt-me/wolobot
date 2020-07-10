@@ -3,6 +3,7 @@ package me.gurt.wolowolo
 import com.typesafe.config.Config
 import me.gurt.wolowolo.bot.WoloBot
 import me.gurt.wolowolo.config.BaseConfig
+import me.gurt.wolowolo.plugins.allPlugins
 import net.ceedubs.ficus.Ficus._
 
 object Main extends BaseConfig {

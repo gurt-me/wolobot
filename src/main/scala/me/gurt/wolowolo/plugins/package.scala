@@ -5,11 +5,17 @@ import me.gurt.wolowolo.config.BaseConfig
 import me.gurt.wolowolo.dsl._
 import net.ceedubs.ficus.Ficus._
 
-import scala.language.implicitConversions
 import scala.util.matching.Regex
 import scala.util.matching.Regex.MatchIterator
 
 package object plugins {
+
+  val allPlugins = Vector(
+    classOf[Nyaa],
+    classOf[Relay],
+    classOf[Useless],
+    classOf[VideoMeta],
+  )
 
   case class Resp[T](resp: (Source, Target, T) => Option[Sendable])
 
