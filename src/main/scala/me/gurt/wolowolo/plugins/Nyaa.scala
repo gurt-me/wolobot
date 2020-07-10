@@ -8,14 +8,19 @@ import de.kaysubs.tracker.nyaasi.model.SearchRequest._
 import me.gurt.wolowolo._
 import org.jibble.pircbot.Colors.BOLD
 
+import scala.util.matching.Regex
+
 class Nyaa extends Plugin {
   import Nyaa._
 
   def handle(networkName: String): Handler =
     Chain(
-      Hook.command("nyaa", Resp { args => Some(nyaa(args)) }),
-      Hook.command("sukebei", Resp { args => Some(sukebei(args)) }),
-      Hook.regex(movieCode, Resp { _.toSeq.headOption.map(sukebei(_)) }),
+      Hook.command("nyaa", nyaa),
+      Hook.command("sukebei", sukebei),
+      Hook.regex(
+        movieCode,
+        (matches: Regex.MatchIterator) => matches.toSeq.headOption.map(sukebei(_)),
+      ),
     )
 
 }

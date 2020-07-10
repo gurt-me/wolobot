@@ -20,7 +20,8 @@ class VideoMeta extends Plugin {
   def handle(networkName: String): Handler =
     Hook.regex(
       urlPattern,
-      Resp { matches => matches.toSeq.headOption.map(lookupMetadata(_).map(_.toString)) },
+      (matches: Regex.MatchIterator) =>
+        matches.toSeq.headOption.map(lookupMetadata(_).map(_.toString)),
     )
 
 }

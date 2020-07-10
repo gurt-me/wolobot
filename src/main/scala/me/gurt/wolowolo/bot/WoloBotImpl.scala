@@ -1,14 +1,12 @@
 package me.gurt.wolowolo.bot
 
 import cats.Parallel
-import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import me.gurt.wolowolo.Handler
 import me.gurt.wolowolo.config.WoloBotConfig
 import me.gurt.wolowolo.dsl._
-import me.gurt.wolowolo.plugins.VideoMeta.YtdlUnsupportedException
 
 import scala.concurrent.ExecutionContext
 

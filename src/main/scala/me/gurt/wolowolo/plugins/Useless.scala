@@ -7,10 +7,10 @@ class Useless extends Plugin {
 
   def handle(net: String): Handler =
     Chain(
-      Hook.command("bots", Resp { _ => Some("Reporting in!!! [Scala]") }),
+      Hook.command("bots", (_: String) => "Reporting in!!! [Scala]"),
       Hook.command(
         "source",
-        Resp { _ => Some("Wolobot is a piece of shit see https://github.com/gurt-me/wolobot") },
+        (_: String) => "Wolobot is a piece of shit see https://github.com/gurt-me/wolobot",
       ),
     )
 

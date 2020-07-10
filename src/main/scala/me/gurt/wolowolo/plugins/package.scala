@@ -5,6 +5,7 @@ import me.gurt.wolowolo.config.BaseConfig
 import me.gurt.wolowolo.dsl._
 import net.ceedubs.ficus.Ficus._
 
+import scala.language.implicitConversions
 import scala.util.matching.Regex
 import scala.util.matching.Regex.MatchIterator
 
@@ -20,21 +21,24 @@ package object plugins {
   case class Resp[T](resp: (Source, Target, T) => Option[Sendable])
 
   object Resp {
-    def apply[T](sr: T => Option[SimpleResponse]): Resp[T] =
-      Resp(liftSimpleResponder(sr)(_, _, _))
-
-    private def liftSimpleResponder[T](
-        sr: T => Option[SimpleResponse],
+    def liftSimpleResponder[T](
+        sr: T => Option[IO[String]],
     )(s: Source, t: Target, m: T): Option[Sendable] =
-      sr(m) map {
-        case ssr: SimpleStringResponse => t msg ssr.s
-        case sfr: SimpleEffectResponse => sfr.f map (t msg _)
-      }
+      sr(m).map(_.map(t.msg))
   }
 
-  sealed trait SimpleResponse                            extends Any
-  implicit class SimpleStringResponse(val s: String)     extends AnyVal with SimpleResponse
-  implicit class SimpleEffectResponse(val f: IO[String]) extends AnyVal with SimpleResponse
+  // tfw brain too small
+  implicit def autoReply[T](simpleReplier: T => Option[IO[String]]): Resp[T] =
+    Resp(Resp.liftSimpleResponder(simpleReplier))
+
+  implicit def autoReply2[T](simpleReplier: T => IO[String]): Resp[T] =
+    autoReply(simpleReplier andThen (Some(_)))
+
+  implicit def autoReply3[T](simpleReplier: T => Option[String]): Resp[T] =
+    autoReply(simpleReplier.andThen(_.map(IO.pure)))
+
+  implicit def autoReply4[T](simpleReplier: T => String): Resp[T] =
+    autoReply3(simpleReplier andThen (Some(_)))
 
   object Hook extends BaseConfig {
 
