@@ -2,6 +2,7 @@ package me.gurt.wolowolo.plugins
 
 import java.util.concurrent.TimeUnit.SECONDS
 
+import cats.data.EitherT
 import cats.effect.IO
 import io.circe.generic.auto._
 import io.circe.parser._
@@ -51,22 +52,21 @@ object VideoMeta {
 
   def lookupMetadata(url: String): IO[YtdlDump] = {
     import scala.sys.process._
-    IO {
+    EitherT(IO {
       val outBuffer = new StringBuilder
       val errBuffer = new StringBuilder
       val rc = Seq("youtube-dl", "--skip-download", "--dump-json", url) ! ProcessLogger(
         outBuffer.addAll,
         errBuffer.addAll,
       )
-      if (rc != 0) Left(new Throwable(s"ytdl failure: $errBuffer"))
+      if (rc != 0) Left(new YtdlUnsupportedException(errBuffer.toString))
       else decode[YtdlDump](outBuffer.toString)
-    } flatMap {
-      case Left(t: Throwable)        => IO.raiseError(t)
-      case Right(ytdlDump: YtdlDump) => IO.pure(ytdlDump)
-    }
+    }).foldF(IO.raiseError, IO.pure[YtdlDump])
   }
 
   implicit class OptionStrOps(os: Option[String]) {
     def `!` : String = os getOrElse ""
   }
+
+  class YtdlUnsupportedException(message: String) extends UnsupportedOperationException(message)
 }

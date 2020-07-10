@@ -1,11 +1,14 @@
 package me.gurt.wolowolo.bot
 
+import cats.Parallel
+import cats.data.EitherT
 import cats.effect.{ContextShift, IO}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import me.gurt.wolowolo.Handler
 import me.gurt.wolowolo.config.WoloBotConfig
 import me.gurt.wolowolo.dsl._
+import me.gurt.wolowolo.plugins.VideoMeta.YtdlUnsupportedException
 
 import scala.concurrent.ExecutionContext
 
@@ -111,6 +114,7 @@ class WoloBotImpl(val connectionConfig: Config)
 
   def evalSendable(s: Sendable): IO[Unit] = {
     // Needed for IO.start to do a logical thread fork
+    implicit val p: Parallel[IO] = IO.ioParallel(cs)
     import cats.implicits._
     s match {
       case PrivMsg(target, m) => IO { sendMessage(target.toString, m.take(450)) }
@@ -128,8 +132,8 @@ class WoloBotImpl(val connectionConfig: Config)
             sendRawLine(line)
           else sendRawLineViaQueue(line)
         }
-      case is: IOSendable   => is.io.flatMap(evalSendable)
-      case is: IterSendable => is.it.toVector.parTraverse(evalSendable).map(_ => ())
+      case is: IOSendable    => is.io.flatMap(evalSendable)
+      case cs: ChainSendable => cs.nc.parTraverse_(evalSendable)
     }
   }
 

@@ -18,7 +18,7 @@ object Main extends BaseConfig {
 
     // attach handlers
     bots foreachEntry { (net, bot) =>
-      bot.handler = handleAll(plugins.map(_.handle(net)))
+      bot.handler = handleAll.combineAll(plugins.map(_.handle(net)))
     }
     bots.values.foreach(_.connect())
   }

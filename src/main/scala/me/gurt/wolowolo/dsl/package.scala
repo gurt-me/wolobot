@@ -1,5 +1,6 @@
 package me.gurt.wolowolo
 
+import cats.data.NonEmptyChain
 import cats.effect.IO
 import org.jibble.pircbot
 
@@ -20,7 +21,7 @@ package object dsl {
   case class Part(channel: Channel, reason: Option[String] = None) extends Received with Sendable
   case class Raw(line: String, skipQueue: Boolean = false)         extends Sendable
   implicit class IOSendable(val io: IO[Sendable])                  extends AnyVal with Sendable
-  implicit class IterSendable(val it: Iterable[Sendable])          extends AnyVal with Sendable
+  implicit class ChainSendable(val nc: NonEmptyChain[Sendable])    extends AnyVal with Sendable
 
   sealed trait Source                                           extends Any
   case object Server                                            extends Source
