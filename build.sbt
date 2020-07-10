@@ -16,24 +16,24 @@ scalacOptions ++= Seq(
 )
 
 val versions = new {
-  val circe = "0.12.3"
+  val circe  = "0.12.3"
+  val nyaaSi = "e307c87877"
 }
+
+resolvers += "jitpack" at "https://jitpack.io"
 
 libraryDependencies ++= Seq(
   "pircbot"                     % "pircbot"         % "1.5.0",
   "ch.qos.logback"              % "logback-classic" % "1.2.3",
+  "com.github.gurt-me"          % "NyaaSi-API"      % versions.nyaaSi,
   "com.iheart"                 %% "ficus"           % "1.4.7",
   "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.2",
+  "io.circe"                   %% "circe-core"      % versions.circe,
+  "io.circe"                   %% "circe-generic"   % versions.circe,
+  "io.circe"                   %% "circe-parser"    % versions.circe,
   "org.typelevel"              %% "cats-core"       % "2.1.1",
   "org.typelevel"              %% "cats-effect"     % "2.1.3",
-) ++ Seq(
-  "io.circe" %% "circe-core",
-  "io.circe" %% "circe-generic",
-  "io.circe" %% "circe-parser",
-).map(_ % versions.circe)
-
-lazy val nyaaSi = RootProject(uri("https://github.com/gurt-me/NyaaSi-API.git"))
-dependsOn(nyaaSi)
+)
 
 assemblyMergeStrategy in assembly := {
   case PathList("module-info.class") => MergeStrategy.concat
