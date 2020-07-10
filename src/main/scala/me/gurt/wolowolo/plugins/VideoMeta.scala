@@ -64,7 +64,7 @@ object VideoMeta {
     }).foldF(IO.raiseError, IO.pure[YtdlDump])
   }
 
-  implicit class OptionStrOps(os: Option[String]) {
+  implicit class OptionStrOps(val os: Option[String]) extends AnyVal {
     def `!` : String = os getOrElse ""
   }
 
