@@ -9,7 +9,7 @@ import scala.language.implicitConversions
 import scala.util.matching.Regex
 import scala.util.matching.Regex.MatchIterator
 
-package object plugins {
+package object plugins extends BaseConfig {
 
   val allPlugins = Vector(
     classOf[Nyaa],
@@ -18,7 +18,7 @@ package object plugins {
     classOf[VideoMeta],
   )
 
-  case class Resp[T](resp: (Source, Target, T) => Option[Sendable])
+  implicit class Resp[T](val resp: (Source, Target, T) => Option[Sendable]) extends AnyVal
 
   object Resp {
     def liftSimpleResponder[T](
@@ -29,7 +29,7 @@ package object plugins {
 
   // tfw brain too small
   implicit def autoReply[T](simpleReplier: T => Option[IO[String]]): Resp[T] =
-    Resp(Resp.liftSimpleResponder(simpleReplier))
+    Resp.liftSimpleResponder(simpleReplier) _
 
   implicit def autoReply2[T](simpleReplier: T => IO[String]): Resp[T] =
     autoReply(simpleReplier andThen (Some(_)))
@@ -40,20 +40,33 @@ package object plugins {
   implicit def autoReply4[T](simpleReplier: T => String): Resp[T] =
     autoReply3(simpleReplier andThen (Some(_)))
 
-  object Hook extends BaseConfig {
+  /** Define a usage to have it shown when handler.resp returns None. */
+  case class Command(names: Seq[String], handler: Resp[String], usage: Option[String])
+  object Command {
+    // just unrolling some default arguments
+    def apply(name: String, handler: Resp[String]): Command =
+      Command(Seq(name), handler, None)
+    def apply(name: String, handler: Resp[String], usage: Option[String]): Command =
+      Command(Seq(name), handler, usage)
+    def apply(names: Seq[String], handler: Resp[String]): Command =
+      Command(names, handler, None)
+  }
 
-    val prefixes = config.as[Set[String]]("command.prefixes")
+  val prefixes = config.as[Set[String]]("command.prefixes")
 
-    def command(cmd: String, h: Resp[String], aliases: String*): Handler = {
-      case (s: Source, t: Target, PrivMsg(_, message))
-          if message
-            .split(" ", 2)
-            .headOption
-            .exists(prefixes.flatMap(p => (cmd +: aliases).map(p + _)).contains(_)) =>
-        h.resp(s, t, message.split(" ", 2).lift(1) getOrElse "")
+  implicit def command2Handler(ch: Command): Handler = {
+    case (s: Source, t: Target, PrivMsg(_, message)) =>
+      val split = message.split(" ", 2)
+      if (split.headOption.exists(prefixes.flatMap(p => (ch.names).map(p + _)).contains(_)))
+        ch.handler
+          .resp(s, t, split.lift(1) getOrElse "")
+          .orElse(ch.usage.map(usageText => t.msg(s"Usage: ${split(0)} $usageText")))
+      else None
 
-      case _ => None
-    }
+    case _ => None
+  }
+
+  object Hook {
 
     def regex(regex: Regex, h: Resp[MatchIterator]): Handler = {
       case (s: Source, t: Target, PrivMsg(_, message)) =>

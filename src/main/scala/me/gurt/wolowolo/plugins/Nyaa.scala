@@ -14,9 +14,17 @@ class Nyaa extends Plugin {
   import Nyaa._
 
   def handle(networkName: String): Handler =
-    Chain(
-      Hook.command("nyaa", nyaa),
-      Hook.command("sukebei", sukebei),
+    Chain[Handler](
+      Command(
+        "nyaa",
+        (args: String) => Some(args).filter(_.nonEmpty).map(nyaa),
+        Some("search term"),
+      ),
+      Command(
+        "sukebei",
+        (args: String) => Some(args).filter(_.nonEmpty).map(sukebei),
+        Some("search term"),
+      ),
       Hook.regex(
         movieCode,
         (matches: Regex.MatchIterator) => matches.toSeq.headOption.map(sukebei(_)),
