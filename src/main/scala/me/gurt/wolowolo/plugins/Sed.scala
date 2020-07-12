@@ -76,7 +76,7 @@ object Sed {
           if (flags.contains('g')) regex.replaceAllIn(src, repl)
           else regex.replaceFirstIn(src, repl)
 
-      lines(key) find (regex.matches) map { line =>
+      lines.get(key) flatMap (_.find(regex.matches)) map { line =>
         (replaceWith(replacement)(line), replaceWith(s"$BOLD$replacement$BOLD")(line))
       }
     }

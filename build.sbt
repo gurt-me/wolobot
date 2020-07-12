@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   "io.circe"                   %% "circe-core"      % versions.circe,
   "io.circe"                   %% "circe-generic"   % versions.circe,
   "io.circe"                   %% "circe-parser"    % versions.circe,
+  "org.scalatest"              %% "scalatest"       % "3.2.0" % "test",
   "org.typelevel"              %% "cats-core"       % "2.1.1",
   "org.typelevel"              %% "cats-effect"     % "2.1.3",
 )
