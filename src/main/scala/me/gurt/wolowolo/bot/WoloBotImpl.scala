@@ -15,6 +15,13 @@ class WoloBotImpl(val connectionConfig: Config)
     with WoloBotConfig
     with LazyLogging {
   var handler: Handler = _
+  def handlerE(s: Source, t: Target, r: Received): Option[Sendable] =
+    try handler(s, t, r)
+    catch {
+      case e: Exception =>
+        logger.error("uncaught exception in handler, fix your shit code", e)
+        None
+    }
 
   setVerbose(verbose)
   setAutoNickChange(true)
@@ -53,7 +60,7 @@ class WoloBotImpl(val connectionConfig: Config)
       action: String,
   ): Unit = {
     val t = Target(target)
-    handler(UserInfo(sender, login, hostname), resolveReply(sender, t), Action(t, action))
+    handlerE(UserInfo(sender, login, hostname), resolveReply(sender, t), Action(t, action))
       .foreach(send)
   }
 
@@ -64,8 +71,11 @@ class WoloBotImpl(val connectionConfig: Config)
       hostname: String,
       message: String,
   ): Unit =
-    handler(UserInfo(sender, login, hostname), Channel(channel), PrivMsg(Channel(channel), message))
-      .foreach(send)
+    handlerE(
+      UserInfo(sender, login, hostname),
+      Channel(channel),
+      PrivMsg(Channel(channel), message),
+    ).foreach(send)
 
   override def onNotice(
       sourceNick: String,
@@ -75,7 +85,7 @@ class WoloBotImpl(val connectionConfig: Config)
       notice: String,
   ): Unit = {
     val t = Target(target)
-    handler(
+    handlerE(
       UserInfo(sourceNick, sourceLogin, sourceHostname),
       resolveReply(sourceNick, t),
       Notice(t, notice),
@@ -83,10 +93,10 @@ class WoloBotImpl(val connectionConfig: Config)
   }
 
   override def onJoin(channel: String, sender: String, login: String, hostname: String): Unit =
-    handler(UserInfo(sender, login, hostname), Channel(channel), Join(Channel(channel)))
+    handlerE(UserInfo(sender, login, hostname), Channel(channel), Join(Channel(channel)))
 
   override def onPart(channel: String, sender: String, login: String, hostname: String): Unit =
-    handler(UserInfo(sender, login, hostname), Channel(channel), Part(Channel(channel)))
+    handlerE(UserInfo(sender, login, hostname), Channel(channel), Part(Channel(channel)))
 
   // XXX: nickchange quit topic all the modes
 
@@ -96,11 +106,11 @@ class WoloBotImpl(val connectionConfig: Config)
       hostname: String,
       message: String,
   ): Unit =
-    handler(UserInfo(sender, login, hostname), User(sender), PrivMsg(User(getNick), message))
+    handlerE(UserInfo(sender, login, hostname), User(sender), PrivMsg(User(getNick), message))
       .foreach(send)
 
   override def onServerResponse(code: Int, response: String): Unit =
-    handler(Server, User(getNick), Numeric(code, response))
+    handlerE(Server, User(getNick), Numeric(code, response))
 
   implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 

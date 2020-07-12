@@ -6,7 +6,7 @@ import cats.data.EitherT
 import cats.effect.IO
 import io.circe.generic.auto._
 import io.circe.parser._
-import me.gurt.wolowolo.{Handler, Plugin}
+import me.gurt.wolowolo.Handler
 
 import scala.concurrent.duration.Duration
 import scala.util.matching.Regex

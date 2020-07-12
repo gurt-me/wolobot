@@ -1,7 +1,7 @@
 package me.gurt.wolowolo.plugins
 
 import cats.data.Chain
-import me.gurt.wolowolo.{Handler, Plugin}
+import me.gurt.wolowolo.Handler
 
 class Useless extends Plugin {
 

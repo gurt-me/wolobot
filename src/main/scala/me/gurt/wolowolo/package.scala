@@ -10,13 +10,6 @@ import scala.language.implicitConversions
 package object wolowolo {
   private[wolowolo] type Handler = ((Source, Target, Received)) => Option[Sendable]
 
-  // catMaybe style only used explicitly
-  val handleAll: Monoid[Handler] = Monoid.instance(
-    _ => None,
-    (h1, h2) =>
-      x => NonEmptyChain.fromSeq(Vector(h1, h2).flatMap(h => h(x))).map(identity[Sendable](_)),
-  )
-
   // handle first
   implicit val sendableSemigroupEvidence: Semigroup[Sendable] = (s1, _) => s1
 

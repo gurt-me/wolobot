@@ -14,6 +14,7 @@ package object plugins extends BaseConfig {
   val allPlugins = Vector(
     classOf[Nyaa],
     classOf[Relay],
+    classOf[Sed],
     classOf[Useless],
     classOf[VideoMeta],
   )

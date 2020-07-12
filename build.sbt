@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   "pircbot"                     % "pircbot"         % "1.5.0",
   "ch.qos.logback"              % "logback-classic" % "1.2.3",
   "com.github.gurt-me"          % "NyaaSi-API"      % versions.nyaaSi,
+  "com.chuusai"                %% "shapeless"       % "2.3.3",
   "com.iheart"                 %% "ficus"           % "1.4.7",
   "com.typesafe.scala-logging" %% "scala-logging"   % "3.9.2",
   "io.circe"                   %% "circe-core"      % versions.circe,
