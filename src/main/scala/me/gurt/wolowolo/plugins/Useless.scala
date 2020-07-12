@@ -12,11 +12,6 @@ class Useless extends Plugin {
         "source",
         (_: String) => "Wolobot is a piece of shit see https://github.com/gurt-me/wolobot",
       ),
-      Command(
-        Seq("eterius", "etarius"),
-        (args: String) => Some(args).filter(_.nonEmpty).map(_ => "aaa"),
-        Some("<nick of loser>"),
-      ),
     ) ++ Chain(
       Seq("eterius", "etarius") ->
         "shut up lonely virgin retard gypsy trannylover mentally disordered thin skinned pedo broken mom'd dehop'd bridgejumping nofamily nogf nohugs nogod",
